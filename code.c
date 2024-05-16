@@ -1,6 +1,7 @@
-#include <u.h>
-#include <libc.h>
-#include <bio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
 #include "hoc.h"
 #include "y.tab.h"
 
@@ -165,7 +166,7 @@ call(void) 		/* call a function */
 		execerror(sp->name, "call nested too deeply");
 	fp++;
 	fp->sp = sp;
-	fp->nargs = (int)(uintptr)pc[1];
+	fp->nargs = (int)(uintptr_t)pc[1];
 	fp->retpc = pc + 2;
 	fp->argn = stackp - 1;	/* last argument */
 	if(fp->nargs != sp->u.defn->nargs)
@@ -290,7 +291,7 @@ mul(void)
 }
 
 void
-div(void)
+divop(void)
 {
 	Datum d1, d2;
 	d2 = pop();
@@ -583,7 +584,7 @@ printtop(void)	/* pop top value from stack, print it */
 	if (s == 0)
 		s = install("_", VAR, 0.0);
 	d = pop();
-	print("%.12g\n", d.val);
+	printf("%.12g\n", d.val);
 	s->u.val = d.val;
 }
 
@@ -592,43 +593,35 @@ prexpr(void)	/* print numeric value */
 {
 	Datum d;
 	d = pop();
-	print("%.12g ", d.val);
+	printf("%.12g ", d.val);
 }
 
 void
 prstr(void)		/* print string value */ 
 {
-	print("%s", (char *) *pc++);
+	printf("%s", (char *) *pc++);
 }
 
 void
 varread(void)	/* read into variable */
 {
 	Datum d;
-	extern Biobuf *bin;
+	extern FILE *fin;
 	Symbol *var = (Symbol *) *pc++;
-	int c;
-
   Again:
-	do
-		c = Bgetc(bin);
-	while(c==' ' || c=='\t' || c=='\n');
-	if(c == Beof){
-  Iseof:
-		if(moreinput())
+	switch (fscanf(fin, "%lf", &var->u.val)) {
+	case EOF:
+		if (moreinput())
 			goto Again;
 		d.val = var->u.val = 0.0;
-		goto Return;
-	}
-
-	if(strchr("+-.0123456789", c) == 0)
+		break;
+	case 0:
 		execerror("non-number read into", var->name);
-	Bungetc(bin);
-	if(Bgetd(bin, &var->u.val) == Beof)
-		goto Iseof;
-	else
+		break;
+	default:
 		d.val = 1.0;
-  Return:
+		break;
+	}
 	var->type = VAR;
 	push(d);
 }

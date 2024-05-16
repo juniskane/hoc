@@ -1,5 +1,6 @@
-#include <u.h>
-#include <libc.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "hoc.h"
 #include "y.tab.h"
 

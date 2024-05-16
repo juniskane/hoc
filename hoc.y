@@ -1,5 +1,13 @@
 %{
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
+#include <stdint.h>
 #include "hoc.h"
+
+void yyerror(char*);
+int yylex(void);
+extern int indef;
+
 #define	code2(c1,c2)	code(c1); code(c2)
 #define	code3(c1,c2,c3)	code(c1); code(c2); code(c3)
 %}
@@ -45,7 +53,7 @@ stmt:	  expr	{ code(xpop); }
 	| RETURN expr
 	        { defnonly("return"); $$=$2; code(funcret); }
 	| PROCEDURE begin '(' arglist ')'
-		{ $$ = $2; code3(call, (Inst)$1, (Inst)$4); }
+		{ $$ = $2; code3(call, (Inst)$1, (Inst)(uintptr_t)$4); }
 	| PRINT prlist	{ $$ = $2; }
 	| while '(' cond ')' stmt end {
 		($1)[1] = (Inst)$5;	/* body of loop */
@@ -84,14 +92,14 @@ expr:	  NUMBER { $$ = code2(constpush, (Inst)$1); }
 	| VAR	 { $$ = code3(varpush, (Inst)$1, eval); }
 	| asgn
 	| FUNCTION begin '(' arglist ')'
-		{ $$ = $2; code3(call,(Inst)$1,(Inst)$4); }
+		{ $$ = $2; code3(call,(Inst)$1,(Inst)(uintptr_t)$4); }
 	| READ '(' VAR ')' { $$ = code2(varread, (Inst)$3); }
 	| BLTIN '(' expr ')' { $$=$3; code2(bltin, (Inst)$1->u.ptr); }
 	| '(' expr ')'	{ $$ = $2; }
 	| expr '+' expr	{ code(add); }
 	| expr '-' expr	{ code(sub); }
 	| expr '*' expr	{ code(mul); }
-	| expr '/' expr	{ code(div); }
+	| expr '/' expr	{ code(divop); }
 	| expr '%' expr	{ code(mod); }
 	| expr '^' expr	{ code (power); }
 	| '-' expr   %prec UNARYMINUS   { $$=$2; code(negate); }
@@ -133,17 +141,18 @@ arglist:  /* nothing */ 	{ $$ = 0; }
 	;
 %%
 	/* end of grammar */
-#include <u.h>
-#include <libc.h>
-#include <bio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <setjmp.h>
+#include <errno.h>
 #include <ctype.h>
+
 char	*progname;
 int	lineno = 1;
 jmp_buf	begin;
-int	indef;
 char	*infile;	/* input file name */
-Biobuf	*bin;		/* input file descriptor */
-Biobuf	binbuf;
+FILE	*fin;		/* input file pointer */
 char	**gargv;	/* global argument list */
 int	gargc;
 
@@ -153,21 +162,22 @@ int	backslash(int), follow(int, int, int);
 void	defnonly(char*), run(void);
 void	warning(char*, char*);
 
+int
 yylex(void)		/* hoc6 */
 {
-	while ((c=Bgetc(bin)) == ' ' || c == '\t')
+	while ((c=getc(fin)) == ' ' || c == '\t')
 		;
-	if (c < 0)
+	if (c == EOF)
 		return 0;
 	if (c == '\\') {
-		c = Bgetc(bin);
+		c = getc(fin);
 		if (c == '\n') {
 			lineno++;
 			return yylex();
 		}
 	}
 	if (c == '#') {		/* comment */
-		while ((c=Bgetc(bin)) != '\n' && c >= 0)
+		while ((c=getc(fin)) != '\n' && c != EOF)
 			;
 		if (c == '\n')
 			lineno++;
@@ -175,8 +185,8 @@ yylex(void)		/* hoc6 */
 	}
 	if (c == '.' || isdigit(c)) {	/* number */
 		double d;
-		Bungetc(bin);
-		Bgetd(bin, &d);
+		ungetc(c, fin);
+		fscanf(fin, "%lf", &d);
 		yylval.sym = install("", NUMBER, d);
 		return NUMBER;
 	}
@@ -189,18 +199,18 @@ yylex(void)		/* hoc6 */
 				execerror("name too long", sbuf);
 			}
 			*p++ = c;
-		} while ((c=Bgetc(bin)) >= 0 && (isalnum(c) || c == '_' || c >= 0x80));
-		Bungetc(bin);
+		} while ((c = getc(fin)) != EOF && (isalnum(c) || c == '_' || c >= 0x80));
+		ungetc(c, fin);
 		*p = '\0';
-		if ((s=lookup(sbuf)) == 0)
+		if ((s = lookup(sbuf)) == 0)
 			s = install(sbuf, UNDEF, 0.0);
 		yylval.sym = s;
 		return s->type == UNDEF ? VAR : s->type;
 	}
 	if (c == '"') {	/* quoted string */
 		char sbuf[100], *p;
-		for (p = sbuf; (c=Bgetc(bin)) != '"'; p++) {
-			if (c == '\n' || c == Beof)
+		for (p = sbuf; (c = getc(fin)) != '"'; p++) {
+			if (c == '\n' || c == EOF)
 				execerror("missing quote", "");
 			if (p >= sbuf + sizeof(sbuf) - 1) {
 				*p = '\0';
@@ -230,24 +240,26 @@ yylex(void)		/* hoc6 */
 	}
 }
 
+int
 backslash(int c)	/* get next char with \'s interpreted */
 {
 	static char transtab[] = "b\bf\fn\nr\rt\t";
 	if (c != '\\')
 		return c;
-	c = Bgetc(bin);
+	c = getc(fin);
 	if (islower(c) && strchr(transtab, c))
 		return strchr(transtab, c)[1];
 	return c;
 }
 
+int
 follow(int expect, int ifyes, int ifno)	/* look ahead for >=, etc. */
 {
-	int c = Bgetc(bin);
+	int c = getc(fin);
 
 	if (c == expect)
 		return ifyes;
-	Bungetc(bin);
+	ungetc(c, fin);
 	return ifno;
 }
 
@@ -265,19 +277,19 @@ void
 execerror(char* s, char* t)	/* recover from run-time error */
 {
 	warning(s, t);
-	Bseek(bin, 0L, 2);		/* flush rest of file */
+	fseek(fin, 0L, 2);		/* flush rest of file */
 	restoreall();
 	longjmp(begin, 0);
 }
 
 void
-fpecatch(void)	/* catch floating point exceptions */
+fpecatch(int sig)	/* catch floating point exceptions */
 {
 	execerror("floating point exception", (char *) 0);
 }
 
 void
-intcatch(void)	/* catch interrupts */
+intcatch(int sig)	/* catch interrupts */
 {
 	execerror("interrupt", 0);
 }
@@ -286,17 +298,19 @@ void
 run(void)	/* execute until EOF */
 {
 	setjmp(begin);
+	signal(SIGINT, intcatch);
+	signal(SIGFPE, fpecatch);
 	for (initcode(); yyparse(); initcode())
 		execute(progbase);
 }
 
-void
+int
 main(int argc, char* argv[])	/* hoc6 */
 {
 	static int first = 1;
 #ifdef YYDEBUG
-	extern int yydebug;
-	yydebug=3;
+	/* extern int yydebug;
+	yydebug=2; */
 #endif
 	progname = argv[0];
 	init();
@@ -310,76 +324,76 @@ main(int argc, char* argv[])	/* hoc6 */
 		gargv = argv+1;
 		gargc = argc-1;
 	}
-	Binit(&binbuf, 0, OREAD);
-	bin = &binbuf;
 	while (moreinput())
 		run();
-	exits(0);
+	return 0;
 }
 
+int
 moreinput(void)
 {
 	char *expr;
 	static char buf[64];
 	int fd;
-	static Biobuf b;
 
 	if (gargc-- <= 0)
 		return 0;
-	if (bin && bin != &binbuf)
-		Bterm(bin);
+	if (fin && fin != stdin)
+		fclose(fin);
 	infile = *gargv++;
 	lineno = 1;
 	if (strcmp(infile, "-") == 0) {
-		bin = &binbuf;
+		fin = stdin;
 		infile = 0;
 		return 1;
 	}
-	if(strncmp(infile, "-e", 2) == 0) {
-		if(infile[2]==0){
-			if(gargc == 0){
-				fprint(2, "%s: no argument for -e\n", progname);
+	if (strncmp(infile, "-e", 2) == 0) {
+		if (infile[2] == 0) {
+			if (gargc == 0) {
+				fprintf(stderr, "%s: no argument for -e\n", progname);
 				return 0;
 			}
 			gargc--;
 			expr = *gargv++;
-		}else
+		} else
 			expr = infile+2;
-		sprint(buf, "/tmp/hocXXXXXXX");
-		infile = mktemp(buf);
-		fd = create(infile, ORDWR|ORCLOSE, 0600);
-		if(fd < 0){
-			fprint(2, "%s: can't create temp. file: %r\n", progname);
+		sprintf(buf, "/tmp/hocXXXXXXX");
+		fd = mkstemp(buf);
+		if (fd < 0) {
+			fprintf(stderr, "%s: can't create temp. file\n", progname);
 			return 0;
 		}
-		fprint(fd, "%s\n", expr);
-		/* leave fd around; file will be removed on exit */
-		/* the following looks weird but is required for unix version */
-		bin = &b;
-		seek(fd, 0, 0);
-		Binit(bin, fd, OREAD);
-	} else {
-		bin=Bopen(infile, OREAD);
-		if (bin == 0) {
-			fprint(2, "%s: can't open %s\n", progname, infile);
-			return moreinput();
+		remove(buf);
+		fin = fdopen(fd, "r+");
+		if (fin == NULL) {
+			fprintf(stderr, "%s: can't open temp. file\n", progname);
+			return 0;
 		}
+		fprintf(fin, "%s\n", expr);
+		fseek(fin, 0L, 0);
+	} else if ((fin = fopen(infile, "r")) == NULL) {
+		fprintf(stderr, "%s: can't open %s\n", progname, infile);
+		return moreinput();
 	}
 	return 1;
 }
 
 void
-warning(char* s, char* t)	/* print warning message */
+warning(char *s, char *t)	/* print warning message */
 {
-	fprint(2, "%s: %s", progname, s);
+	fprintf(stderr, "%s: %s", progname, s);
 	if (t)
-		fprint(2, " %s", t);
+		fprintf(stderr, " %s", t);
 	if (infile)
-		fprint(2, " in %s", infile);
-	fprint(2, " near line %d\n", lineno);
-	while (c != '\n' && c != Beof)
-		if((c = Bgetc(bin)) == '\n')	/* flush rest of input line */
+		fprintf(stderr, " in %s", infile);
+	fprintf(stderr, " near line %d\n", lineno);
+	while (c != '\n' && c != EOF)
+		if ((c = getc(fin)) == '\n')	/* flush rest of input line */
 			lineno++;
+		else if (c == EOF && errno == EINTR) {
+			clearerr(fin);
+			errno = 0;
+		}
 }
 
 void

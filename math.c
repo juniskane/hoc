@@ -1,6 +1,5 @@
-#include <u.h>
-#include <libc.h>
-
+#include <math.h>
+#include <errno.h>
 #include "hoc.h"
 
 double	errcheck(double, char*);
@@ -67,9 +66,12 @@ integer(double x)
 double
 errcheck(double d, char* s)	/* check result of library call */
 {
-	if(isNaN(d))
+	if (errno == EDOM) {
+		errno = 0;
 		execerror(s, "argument out of domain");
-	if(isInf(d, 0))
+	} else if (errno == ERANGE) {
+		errno = 0;
 		execerror(s, "result out of range");
+	}
 	return d;
 }
