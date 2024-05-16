@@ -6,19 +6,19 @@
 
 static Symbol *symlist = 0;  /* symbol table: linked list */
 
-Symbol*
-lookup(char* s)	/* find s in symbol table */
+Symbol *
+lookup(char *s)	/* find s in symbol table */
 {
 	Symbol *sp;
 
 	for (sp = symlist; sp != (Symbol *) 0; sp = sp->next)
 		if (strcmp(sp->name, s) == 0)
 			return sp;
-	return 0;	/* 0 ==> not found */	
+	return 0;	/* 0 ==> not found */
 }
 
-Symbol*
-install(char* s, int t, double d)  /* install s in symbol table */
+Symbol *
+install(char *s, int t, double d)  /* install s in symbol table */
 {
 	Symbol *sp;
 
@@ -32,7 +32,7 @@ install(char* s, int t, double d)  /* install s in symbol table */
 	return sp;
 }
 
-void*
+void *
 emalloc(unsigned n)	/* check return from malloc */
 {
 	char *p;
@@ -43,7 +43,7 @@ emalloc(unsigned n)	/* check return from malloc */
 	return p;
 }
 
-Formal*
+Formal *
 formallist(Symbol *formal, Formal *list)	/* add formal to list */
 {
 	Formal *f;

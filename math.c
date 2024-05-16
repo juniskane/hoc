@@ -2,13 +2,14 @@
 #include <errno.h>
 #include "hoc.h"
 
-double	errcheck(double, char*);
+double errcheck(double, char *);
 
 double
 Log(double x)
 {
 	return errcheck(log(x), "log");
 }
+
 double
 Log10(double x)
 {
@@ -44,11 +45,13 @@ Sinh(double x)
 {
 	return errcheck(sinh(x), "sinh");
 }
+
 double
 Cosh(double x)
 {
 	return errcheck(cosh(x), "cosh");
 }
+
 double
 Pow(double x, double y)
 {
@@ -58,13 +61,13 @@ Pow(double x, double y)
 double
 integer(double x)
 {
-	if(x<-2147483648.0 || x>2147483647.0)
+	if (x < -2147483648.0 || x > 2147483647.0)
 		execerror("argument out of domain", 0);
 	return (double)(long)x;
 }
 
 double
-errcheck(double d, char* s)	/* check result of library call */
+errcheck(double d, char *s)	/* check result of library call */
 {
 	if (errno == EDOM) {
 		errno = 0;

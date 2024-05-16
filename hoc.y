@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "hoc.h"
 
-void yyerror(char*);
+void yyerror(char *);
 int yylex(void);
 extern int indef;
 
@@ -21,7 +21,7 @@ extern int indef;
 %token	<sym>	FUNCTION PROCEDURE RETURN FUNC PROC READ
 %type	<formals>	formals
 %type	<inst>	expr stmt asgn prlist stmtlist
-%type	<inst>	cond while for if begin end 
+%type	<inst>	cond while for if begin end
 %type	<sym>	procname
 %type	<narg>	arglist
 %right	'=' ADDEQ SUBEQ MULEQ DIVEQ MODEQ
@@ -37,7 +37,7 @@ list:	  /* nothing */
 	| list '\n'
 	| list defn '\n'
 	| list asgn '\n'  { code2(xpop, STOP); return 1; }
-	| list stmt '\n'  { code(STOP); return 1; } 
+	| list stmt '\n'  { code(STOP); return 1; }
 	| list expr '\n'  { code2(printtop, STOP); return 1; }
 	| list error '\n' { yyerrok; }
 	;
@@ -159,13 +159,13 @@ int	gargc;
 int c = '\n';	/* global for use by warning() */
 
 int	backslash(int), follow(int, int, int);
-void	defnonly(char*), run(void);
-void	warning(char*, char*);
+void	run(void);
+void	warning(char *, char *);
 
 int
 yylex(void)		/* hoc6 */
 {
-	while ((c=getc(fin)) == ' ' || c == '\t')
+	while ((c = getc(fin)) == ' ' || c == '\t')
 		;
 	if (c == EOF)
 		return 0;
@@ -177,7 +177,7 @@ yylex(void)		/* hoc6 */
 		}
 	}
 	if (c == '#') {		/* comment */
-		while ((c=getc(fin)) != '\n' && c != EOF)
+		while ((c = getc(fin)) != '\n' && c != EOF)
 			;
 		if (c == '\n')
 			lineno++;
@@ -266,18 +266,14 @@ follow(int expect, int ifyes, int ifno)	/* look ahead for >=, etc. */
 void
 yyerror(char* s)	/* report compile-time error */
 {
-/*rob
-	warning(s, (char *)0);
-	longjmp(begin, 0);
-rob*/
-	execerror(s, (char *)0);
+	execerror(s, 0);
 }
 
 void
-execerror(char* s, char* t)	/* recover from run-time error */
+execerror(char *s, char *t)	/* recover from run-time error */
 {
 	warning(s, t);
-	fseek(fin, 0L, 2);		/* flush rest of file */
+	fseek(fin, 0L, 2);	/* flush rest of file */
 	restoreall();
 	longjmp(begin, 0);
 }
@@ -285,7 +281,7 @@ execerror(char* s, char* t)	/* recover from run-time error */
 void
 fpecatch(int sig)	/* catch floating point exceptions */
 {
-	execerror("floating point exception", (char *) 0);
+	execerror("floating point exception", 0);
 }
 
 void

@@ -46,13 +46,13 @@ struct Fndefn {	/* formal parameter */
 	int	nargs;
 };
 
-extern	Formal *formallist(Symbol*, Formal*);
+extern	Formal *formallist(Symbol *, Formal *);
 extern	double Fgetd(int);
 extern	int moreinput(void);
-extern	void restore(Symbol*);
+extern	void restore(Symbol *);
 extern	void restoreall(void);
-extern	void execerror(char*, char*);
-extern	void define(Symbol*, Formal*), verify(Symbol*);
+extern	void execerror(char *, char *);
+extern	void define(Symbol *, Formal *), verify(Symbol *);
 extern	Datum pop(void);
 extern	void initcode(void), push(Datum), xpop(void), constpush(void);
 extern	void varpush(void);
@@ -69,7 +69,7 @@ extern	void ifcode(void), whilecode(void), forcode(void);
 extern	void call(void), arg(void), argassign(void);
 extern	void funcret(void), procret(void);
 extern	void preinc(void), predec(void), postinc(void), postdec(void);
-extern	void execute(Inst*);
+extern	void execute(Inst *);
 extern	void printtop(void);
 
 extern double	Log(double), Log10(double), Gamma(double), Sqrt(double), Exp(double);
@@ -78,7 +78,6 @@ extern double	Pow(double, double);
 
 extern	void init(void);
 extern	int yyparse(void);
-extern	void execerror(char*, char*);
 extern	void *emalloc(unsigned);
 
 extern void defnonly(char *);

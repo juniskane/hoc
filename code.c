@@ -121,7 +121,7 @@ forcode(void)
 }
 
 void
-ifcode(void) 
+ifcode(void)
 {
 	Datum d;
 	Inst *savepc = pc;	/* then part */
@@ -129,7 +129,7 @@ ifcode(void)
 	execute(savepc+3);	/* condition */
 	d = pop();
 	if (d.val)
-		execute(*((Inst **)(savepc)));	
+		execute(*((Inst **)(savepc)));
 	else if (*((Inst **)(savepc+1))) /* else part? */
 		execute(*((Inst **)(savepc+1)));
 	if (!returning)
@@ -146,7 +146,7 @@ define(Symbol* sp, Formal *f)	/* put func/proc in symbol table */
 	fd->code = progbase;	/* start of code */
 	progbase = progp;	/* next code starts here */
 	fd->formals = f;
-	for(n=0; f; f=f->next)
+	for (n = 0; f; f = f->next)
 		n++;
 	fd->nargs = n;
 	sp->u.defn = fd;
@@ -169,12 +169,12 @@ call(void) 		/* call a function */
 	fp->nargs = (int)(uintptr_t)pc[1];
 	fp->retpc = pc + 2;
 	fp->argn = stackp - 1;	/* last argument */
-	if(fp->nargs != sp->u.defn->nargs)
+	if (fp->nargs != sp->u.defn->nargs)
 		execerror(sp->name, "called with wrong number of arguments");
 	/* bind formals */
 	f = sp->u.defn->formals;
 	arg = stackp - fp->nargs;
-	while(f){
+	while (f) {
 		s = emalloc(sizeof(Saveval));
 		s->val = f->sym->u;
 		s->type = f->sym->type;
@@ -198,9 +198,9 @@ restore(Symbol *sp)	/* restore formals associated with symbol */
 	Saveval *s;
 
 	f = sp->u.defn->formals;
-	while(f){
+	while (f) {
 		s = f->save;
-		if(s == 0)	/* more actuals than formals */
+		if (s == 0)	/* more actuals than formals */
 			break;
 		f->sym->u = s->val;
 		f->sym->type = s->type;
@@ -213,7 +213,7 @@ restore(Symbol *sp)	/* restore formals associated with symbol */
 void
 restoreall(void)	/* restore all variables in case of error */
 {
-	while(fp>=frame && fp->sp){
+	while (fp >= frame && fp->sp) {
 		restore(fp->sp);
 		--fp;
 	}
@@ -251,7 +251,7 @@ procret(void) 	/* return from a procedure */
 }
 
 void
-bltin(void) 
+bltin(void)
 {
 
 	Datum d;
@@ -325,7 +325,7 @@ negate(void)
 }
 
 void
-verify(Symbol* s)
+verify(Symbol *s)
 {
 	if (s->type != VAR && s->type != UNDEF)
 		execerror("attempt to evaluate non-variable", s->name);
@@ -597,7 +597,7 @@ prexpr(void)	/* print numeric value */
 }
 
 void
-prstr(void)		/* print string value */ 
+prstr(void)	/* print string value */
 {
 	printf("%s", (char *) *pc++);
 }
