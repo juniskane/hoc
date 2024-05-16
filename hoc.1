@@ -23,8 +23,7 @@ If no
 .I file
 is given or if
 .I file
-is
-.L -
+is '-'
 .I hoc
 interprets the standard input.
 The
@@ -43,19 +42,28 @@ Statements, typically assignments and function or procedure
 definitions, produce no output unless they explicitly call
 .IR print .
 .PP
-Variable names have the usual syntax, including 
-.LR _ ;
-the name 
-.L _
+Variable names have the usual syntax, including
+.BR '_' ;
+the name
+.B '_'
 by itself contains the value of the last expression evaluated.
 The variables
 .BR E ,
 .BR PI ,
 .BR PHI ,
-.BR GAMMA
+.BR GAMMA ,
+.B DEG
 and
-.B DEG 
-are predefined; the last is 59.25..., degrees per radian.
+.B PREC
+are predefined.
+.B PHI
+is golden ratio,
+.B GAMMA
+is Euler's constant and
+.B DEG
+is 180/PI, degrees per radian.
+.B PREC
+is maximum number of significant digits in output, initially 15.
 .PP
 Expressions are formed with these C-like operators, listed by
 decreasing precedence.
@@ -130,8 +138,6 @@ func gcd(a, b) {
 }
 for(i=1; i<12; i++) print gcd(i,12)
 .EE
-.SH SOURCE
-.B /sys/src/cmd/hoc
 .SH "SEE ALSO"
 .IR bc (1),
 .IR dc (1)
@@ -142,3 +148,10 @@ The Unix Programming Environment,
 Prentice-Hall, 1984
 .SH BUGS
 Error recovery is imperfect within function and procedure definitions.
+.br
+All components of a
+.B for
+statement must be non-empty.
+.br
+Functions and procedures have to be declared before use,
+which makes mutual recursion impossible.

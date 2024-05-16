@@ -1,0 +1,8 @@
+Plan 9 hoc(1) backported to Unix. This is updated version
+from the one found in The Unix Programming Environment,
+by Brian Kernighan and Rob Pike (Addison-Wesley, 1984).
+
+Changes since the 4th edition of Plan 9 version:
+
+- results are 15 digits by default but variable PREC can
+be used to override this.

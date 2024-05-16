@@ -581,11 +581,14 @@ void
 printtop(void)	/* pop top value from stack, print it */
 {
 	Datum d;
+	int prec;
 	static Symbol *s;	/* last value computed */
+
 	if (s == 0)
 		s = install("_", VAR, 0.0);
 	d = pop();
-	printf("%.12g\n", d.val);
+	prec = (int)lookup("PREC")->u.val;
+	printf("%.*g\n", prec, d.val);
 	s->u.val = d.val;
 }
 
@@ -593,8 +596,11 @@ void
 prexpr(void)	/* print numeric value */
 {
 	Datum d;
+	int prec;
+
 	d = pop();
-	printf("%.12g ", d.val);
+	prec = (int)lookup("PREC")->u.val;
+	printf("%.*g ", prec, d.val);
 }
 
 void
