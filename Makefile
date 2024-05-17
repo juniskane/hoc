@@ -23,6 +23,9 @@ clean:
 nuke: clean
 	-rm -f hoc
 
+check: hoc
+	./runtests.sh
+
 install: hoc
 	mkdir -p $(BINDIR) $(MANDIR)/man1
 	install -m755 hoc $(BINDIR)/hoc
@@ -32,4 +35,4 @@ uninstall:
 	rm -f $(BINDIR)/hoc
 	rm -f $(MANDIR)/man1/hoc.1
 
-.PHONY: clean nuke install uninstall
+.PHONY: clean nuke check install uninstall

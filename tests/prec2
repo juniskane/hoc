@@ -1,0 +1,10 @@
+# Really tests underlying printf(3) "%0.*g" format specifier
+x=22/7
+PREC=1
+print "PREC=1: ", x, "\n"
+PREC=0
+print "PREC=0: ", x, "\n"
+PREC=-1
+print "PREC=-1: ", x, "\n"
+PREC=15
+print "PREC=15: ", x, "\n"

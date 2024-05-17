@@ -1,0 +1,13 @@
+# Test that % and %= produce same values
+a = 1e20
+a = a % 47
+a
+b = 1e20
+b %= 47
+b
+c = 2.3e10
+c = c % 601
+c
+d = 2.3e10
+d %= 601
+d
