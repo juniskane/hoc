@@ -301,6 +301,24 @@ run(void)	/* execute until EOF */
 }
 
 int
+efclose(FILE *fp, const char *name)	/* Safely close output file */
+{
+	int ret = 0;
+
+	fflush(fp);
+	if (ferror(fp)) {
+		fprintf(stderr, "%s: %s: ", progname, name);
+		perror("");
+		ret = 1;
+	}
+	if (fclose(fp) && !ret) {
+		fprintf(stderr, "%s: can't close %s\n", progname, name);
+		ret = 1;
+	}
+	return ret;
+}
+
+int
 main(int argc, char* argv[])	/* hoc6 */
 {
 	static int first = 1;
@@ -322,7 +340,7 @@ main(int argc, char* argv[])	/* hoc6 */
 	}
 	while (moreinput())
 		run();
-	return 0;
+	return efclose(stdout, "<stdout>");
 }
 
 int
