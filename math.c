@@ -67,6 +67,18 @@ integer(double x)
 }
 
 double
+Isinf(double x)
+{
+	return (double)isinf(x);
+}
+
+double
+Isnan(double x)
+{
+	return (double)isnan(x);
+}
+
+double
 errcheck(double d, char *s)	/* check result of library call */
 {
 	if (errno == EDOM) {

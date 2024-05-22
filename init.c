@@ -28,6 +28,9 @@ static struct {		/* Constants */
 	{ "DEG",	57.29577951308232087680 }, /* deg/radian */
 	{ "PHI",	1.61803398874989484820 },  /* golden ratio */
 	{ "PREC",	15 }, /* output precision */
+	{ "INF",	INFINITY },
+	{ "INFINITY",	INFINITY }, /* synonym of INF, to match strtod() */
+	{ "NAN",	NAN },
 	{ 0,		0 }
 };
 
@@ -50,6 +53,8 @@ static struct {		/* Built-ins */
 	{ "sqrt",	Sqrt },	/* checks range */
 	{ "int",	integer },
 	{ "abs",	fabs },
+	{ "isinf",	Isinf },
+	{ "isnan",	Isnan },
 	{ 0,	0 }
 };
 

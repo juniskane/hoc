@@ -2,7 +2,16 @@ Plan 9 hoc(1) backported to Unix. This is updated version
 from the one found in The Unix Programming Environment,
 by Brian Kernighan and Rob Pike (Addison-Wesley, 1984).
 
+This version of hoc(1) needs C99 math functions in libc,
+but otherwise should compile with C89 compilers as well.
+
 Changes since the 4th edition of Plan 9 version:
 
-- results are 15 digits by default but variable PREC can
+- Results are 15 digits by default but variable PREC can
 be used to override this.
+
+- Added INF, NAN, isinf() and isnan().
+
+- Changed output format to use %G instead of %g so that any
+  INF or NAN in output is also valid input, without having to
+  support lower case builtin variable names ('inf' and 'nan').

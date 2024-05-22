@@ -588,7 +588,7 @@ printtop(void)	/* pop top value from stack, print it */
 		s = install("_", VAR, 0.0);
 	d = pop();
 	prec = (int)lookup("PREC")->u.val;
-	printf("%.*g\n", prec, d.val);
+	printf("%.*G\n", prec, d.val);
 	s->u.val = d.val;
 }
 
@@ -600,7 +600,7 @@ prexpr(void)	/* print numeric value */
 
 	d = pop();
 	prec = (int)lookup("PREC")->u.val;
-	printf("%.*g ", prec, d.val);
+	printf("%.*G ", prec, d.val);
 }
 
 void

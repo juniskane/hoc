@@ -5,7 +5,7 @@ hoc \- interactive floating point language
 .B hoc
 [
 .B -e
-.I expression
+.I script
 ]
 [
 .I file ...
@@ -31,6 +31,10 @@ The
 option allows input to
 .I hoc
 to be specified on the command line, to be treated as if it appeared in a file.
+Multiple
+.B -e
+options are allowed and may appear in any order with
+.IR files .
 .PP
 .I Hoc
 input consists of
@@ -52,7 +56,9 @@ The variables
 .BR PI ,
 .BR PHI ,
 .BR GAMMA ,
-.B DEG
+.BR DEG ,
+.BR INF ,
+.B NAN
 and
 .B PREC
 are predefined.
@@ -95,6 +101,8 @@ Built in functions are
 .BR cosh ,
 .BR exp ,
 .BR int ,
+.BR isinf ,
+.BR isnan ,
 .BR log ,
 .BR log10 ,
 .BR sin ,

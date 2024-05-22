@@ -1,0 +1,4 @@
+isnan(0)
+isnan(NAN)
+NAN == NAN
+NAN != NAN
