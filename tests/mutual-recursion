@@ -1,0 +1,11 @@
+proc a(n) {
+    print "Not printed\n"
+}
+proc b(n) {
+    if (n > 0) a(n-1)
+}
+proc a(n) {
+    b(n)
+    print n
+}
+b(5)

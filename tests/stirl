@@ -1,0 +1,21 @@
+# Example from the Unix Programming Environment p. 333
+
+PREC=8  # To reproduce exactly same output as in the book
+
+# Stirling's formula:
+func stirl(n) {
+    return sqrt(2*n*PI) * (n/E)^n*(1+1/(12*n))
+}
+
+# Print few values:
+stirl(10)
+stirl(20)
+
+# Factorial, n!
+func fac(n) if (n <= 0) return 1 else return n * fac(n-1)
+
+# Ratio of factorial to Stirling approximation:
+i = 9
+while ((i = i+1) <= 20) {
+    print i, " ", fac(i)/stirl(i), "\n"
+}

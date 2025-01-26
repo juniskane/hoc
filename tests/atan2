@@ -1,0 +1,27 @@
+func atan2(y,x) {
+    if (x > 0) {
+        return atan(y/x)
+    } else if (x < 0) {
+        if (y >= 0) {
+            return atan(y/x) + PI
+        }
+        return atan(y/x) - PI
+    } else if (y > 0) {
+        return PI/2
+    } else if (y < 0) {
+        return -PI/2
+    } else {
+        print "atan2 domain error\n"
+        return 0
+    }
+}
+PREC=6
+atan2(2,3)
+atan2(3,2)
+atan2(0.6,0.4)
+atan2(0.6,-0.4)
+atan2(-0.6,-0.4)
+atan2(-0.6,0.4)
+atan2(0,-1)
+atan2(0,1)
+atan2(0,0)

@@ -1,4 +1,5 @@
 .POSIX:
+# CC = cproc
 CC = gcc -std=c99
 CFLAGS = -g -Wall
 YFLAGS = -d # -t
